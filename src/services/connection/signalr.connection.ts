@@ -27,6 +27,12 @@ export class SignalRConnection implements ISignalRConnection {
         this._listeners = {};
     }
 
+    // the connection has to restart after setting the querystring
+    public setQueryString(qs: any) {
+        this._configuration.qs = qs;
+        this._jConnection.qs = qs;
+    }
+
     public get errors(): Observable<any> {
         return this._errors;
     }
