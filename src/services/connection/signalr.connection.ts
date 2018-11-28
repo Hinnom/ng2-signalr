@@ -9,6 +9,7 @@ import { ConnectionTransport } from './connection.transport';
 export declare type CallbackFn = (...args: any[]) => void;
 
 export class SignalRConnection implements ISignalRConnection {
+    private _currentStatus: ConnectionStatus;
     private _status: Observable<ConnectionStatus>;
     private _errors: Observable<any>;
     private _jConnection: any;
@@ -41,6 +42,10 @@ export class SignalRConnection implements ISignalRConnection {
         return this._status;
     }
 
+    public get currentStatus(): ConnectionStatus {
+        return this._currentStatus;
+    }
+
     public start(): Promise<ISignalRConnection> {
 
         const jTransports = this.convertTransports(this._configuration.transport);
@@ -54,12 +59,12 @@ export class SignalRConnection implements ISignalRConnection {
                     withCredentials: this._configuration.withCredentials,
                 })
                 .done(() => {
-                    console.log('Connection established, ID: ' + this._jConnection.id);
-                    console.log('Connection established, Transport: ' + this._jConnection.transport.name);
+                    this.log('Connection established, ID: ' + this._jConnection.id);
+                    this.log('Connection established, Transport: ' + this._jConnection.transport.name);
                     resolve(this);
                 })
                 .fail((error: any) => {
-                    console.log('Could not connect');
+                    this.log('Could not connect');
                     reject('Failed to connect. Error: ' + error.message); // ex: Error during negotiation request.
                 });
         });
@@ -88,9 +93,9 @@ export class SignalRConnection implements ISignalRConnection {
                     this.log(`Promise resolved.`);
                 })
                 .fail((err: any) => {
-                    console.log(`Invoking \'${method}\' failed. Rejecting promise...`);
+                    this.log(`Invoking \'${method}\' failed. Rejecting promise...`);
                     reject(err);
-                    console.log(`Promise rejected.`);
+                    this.log(`Promise rejected.`);
                 });
         });
         return $promise;
@@ -200,8 +205,8 @@ export class SignalRConnection implements ISignalRConnection {
         // aggregate all signalr connection status handlers into 1 observable.
         // handler wire up, for signalr connection status callback.
         this._jConnection.stateChanged((change: any) => {
-            this.run(() => sStatus.next(new ConnectionStatus(change.newState)),
-                this._configuration.executeStatusChangeInZone);
+            this._currentStatus = new ConnectionStatus(change.newState);
+            this.run(() => sStatus.next(this._currentStatus), this._configuration.executeStatusChangeInZone);
         });
         return sStatus.asObservable();
     }

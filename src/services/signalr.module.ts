@@ -21,6 +21,16 @@ export function getJConnectionFn(): any {
     return hubConnectionFn;
 }
 
+export function setHttpAjaxDefaults(defaults: any) {
+    const jQuery = getJquery();
+    jQuery.signalR.ajaxDefaults.headers = defaults;
+}
+
+// (<any>window).$.signalR.ajaxDefaults.headers = {
+//     'Content-Type': "application/json",
+//     "Authorize": token
+//   };
+
 function getJquery(): any {
     const jQuery = (window as any).jQuery;
     if (jQuery == null) {
